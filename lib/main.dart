@@ -44,21 +44,29 @@ class MyApp extends StatelessWidget {
         ),
         home: OrderPage(
           foods: [
-            Food(name: 'Pho', price: 10, img: 'image1.jpg', category: 'Do an'),
+            Food(
+                name: 'Pho',
+                price: 10,
+                img:
+                    'https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Ph%E1%BB%9F_b%C3%B2%2C_C%E1%BA%A7u_Gi%E1%BA%A5y%2C_H%C3%A0_N%E1%BB%99i.jpg/1599px-Ph%E1%BB%9F_b%C3%B2%2C_C%E1%BA%A7u_Gi%E1%BA%A5y%2C_H%C3%A0_N%E1%BB%99i.jpg',
+                category: 'Do an'),
             Food(
                 name: 'Bun bo',
                 price: 10,
-                img: 'image2.jpg',
+                img:
+                    'https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Bun-Bo-Hue-from-Huong-Giang-2011.jpg/1200px-Bun-Bo-Hue-from-Huong-Giang-2011.jpg',
                 category: 'Do an'),
             Food(
                 name: 'Sting',
                 price: 10,
-                img: 'image3.jpg',
+                img:
+                    'https://cdn.tgdd.vn/Products/Images/3226/76519/bhx/nuoc-tang-luc-sting-sleek-huong-dau-320ml-202211041423237135.jpg',
                 category: 'Thuc uong'),
             Food(
                 name: 'Cam',
                 price: 10,
-                img: 'image4.jpg',
+                img:
+                    'https://suckhoedoisong.qltns.mediacdn.vn/324455921873985536/2022/2/19/cach-lam-nuoc-cam-ep-ngon-va-thom-ket-hop-voi-le-va-gung-5-1645248090817401855254.jpg',
                 category: 'Thuc uong'),
           ],
           categories: [
@@ -178,31 +186,61 @@ class Cart extends StatelessWidget {
     handleChangeCartItem(cartItem);
   }
 
-  Widget _buildCartItem(CartItem cartItem) =>
-      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        Text(cartItem.food.name),
-        Text(cartItem.food.price.toString()),
-        GestureDetector(
-            child: Icon(Icons.remove_circle),
-            onTap: () => _handleDecreaseQuantity(cartItem)),
-        Text(cartItem.quantity.toString()),
-        GestureDetector(
-          child: Icon(Icons.add_circle),
-          onTap: () => _handleIncreaseQuantity(cartItem),
-        ),
-        Text((cartItem.quantity * cartItem.food.price).toString())
-      ]);
+  Widget _buildCartItem(CartItem cartItem) => Padding(
+        padding: const EdgeInsets.all(8.0),
+        child:
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          Text(cartItem.food.name),
+          Text(cartItem.food.price.toString()),
+          GestureDetector(
+              child: Icon(Icons.remove_circle),
+              onTap: () => _handleDecreaseQuantity(cartItem)),
+          Text(cartItem.quantity.toString()),
+          GestureDetector(
+            child: Icon(Icons.add_circle),
+            onTap: () => _handleIncreaseQuantity(cartItem),
+          ),
+          Text((cartItem.quantity * cartItem.food.price).toString())
+        ]),
+      );
 
   @override
   Widget build(BuildContext context) {
     return Card(
         child: Column(
       children: [
-        Text('Total items ${cartItems.length}'),
-        Column(
-            children: cartItems
-                .map((CartItem cartItem) => _buildCartItem(cartItem))
-                .toList()),
+        Text('Current cart', style: Theme.of(context).textTheme.headlineMedium),
+        Expanded(
+          child: Column(
+              children: cartItems
+                  .map((CartItem cartItem) => _buildCartItem(cartItem))
+                  .toList()),
+        ),
+        Divider(thickness: 1),
+        Column(children: [
+          Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [Text('Subtotal: '), Text('1000\$')]),
+          Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [Text('Discount sales: '), Text('1000\$')]),
+          Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [Text('Tax and fee: '), Text('1000\$')]),
+        ]),
+        Divider(thickness: 1, color: Colors.black),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Total', style: Theme.of(context).textTheme.titleMedium),
+            Text('10000\$', style: Theme.of(context).textTheme.titleMedium),
+          ],
+        ),
+        Padding(
+          padding: const EdgeInsets.only(top: 8, bottom: 20),
+          child: TextButton(onPressed: () {}, child: Text('CONTINUE PAYMENT')),
+        )
+        
       ],
     ));
   }
@@ -229,7 +267,8 @@ class FoodHeader extends StatelessWidget {
         child: TextField(
           onSubmitted: (value) => handleChangeSearchKey(value),
           decoration: InputDecoration(
-            border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
+            border: OutlineInputBorder(
+                borderRadius: BorderRadius.all(Radius.circular(20))),
             labelText: 'Search product...',
             prefixIcon: Icon(Icons.search),
           ),
@@ -290,26 +329,21 @@ class _FoodSelectState extends State<FoodSelect> {
       );
 
   Widget _buildFoodList() => Expanded(
-    child: GridView.extent(
-        mainAxisSpacing: 4,
-        crossAxisSpacing: 4,
-        padding: const EdgeInsets.all(4),
-        maxCrossAxisExtent: 200,
-        children: widget.foods
-            .where((Food food) =>
-                selectedCategory.name == 'All' ||
-                food.category == selectedCategory.name)
-            .where((Food food) => food.name.toLowerCase().contains(searchKey.toLowerCase()))
-            .map((Food food) => GestureDetector(
-                  onTap: () => widget.handleTapFood(food),
-                  child: Card(
-                      child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text("${food.name}: ${food.price}"),
-                  )),
-                ))
-            .toList()),
-  );
+        child: GridView.extent(
+            mainAxisSpacing: 4,
+            crossAxisSpacing: 4,
+            padding: const EdgeInsets.all(4),
+            maxCrossAxisExtent: 300,
+            children: widget.foods
+                .where((Food food) =>
+                    selectedCategory.name == 'All' ||
+                    food.category == selectedCategory.name)
+                .where((Food food) =>
+                    food.name.toLowerCase().contains(searchKey.toLowerCase()))
+                .map((Food food) =>
+                    FoodCard(food: food, handleTapFood: widget.handleTapFood))
+                .toList()),
+      );
 
   Widget _buildFoodHeader() => FoodHeader(
       searchKey: searchKey, handleChangeSearchKey: handleChangeSearchKey);
@@ -321,5 +355,32 @@ class _FoodSelectState extends State<FoodSelect> {
       _buildCategorySelector(),
       _buildFoodList(),
     ]);
+  }
+}
+
+class FoodCard extends StatelessWidget {
+  const FoodCard({
+    super.key,
+    required this.food,
+    required this.handleTapFood,
+  });
+
+  final Food food;
+  final TapFoodCallback handleTapFood;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => handleTapFood(food),
+      child: Card(
+          child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(children: [
+          Image.network(food.img, width: 150, height: 150, fit: BoxFit.fill),
+          Text(food.name),
+          Text(food.price.toString())
+        ]),
+      )),
+    );
   }
 }
