@@ -6,6 +6,29 @@ void main() {
   runApp(MyApp());
 }
 
+class Category {
+  const Category({required this.name});
+  final String name;
+}
+
+class Food {
+  const Food(
+      {required this.name,
+      required this.price,
+      required this.img,
+      required this.category});
+  final String name;
+  final int price;
+  final String img;
+  final String category;
+}
+
+class CartItem {
+  CartItem({required this.food, required this.quantity});
+  final Food food;
+  int quantity = 0;
+}
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -14,12 +37,37 @@ class MyApp extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (context) => MyAppState(),
       child: MaterialApp(
-        title: 'Namer App',
+        title: 'Food App',
         theme: ThemeData(
           useMaterial3: true,
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
         ),
-        home: MyHomePage(),
+        home: OrderPage(
+          foods: [
+            Food(name: 'Pho', price: 10, img: 'image1.jpg', category: 'Do an'),
+            Food(
+                name: 'Bun bo',
+                price: 10,
+                img: 'image2.jpg',
+                category: 'Do an'),
+            Food(
+                name: 'Sting',
+                price: 10,
+                img: 'image3.jpg',
+                category: 'Thuc uong'),
+            Food(
+                name: 'Cam',
+                price: 10,
+                img: 'image4.jpg',
+                category: 'Thuc uong'),
+          ],
+          categories: [
+             Category(name: 'All'),
+            Category(name: 'Do an'),
+            Category(name: 'Thuc uong'),
+            Category(name: 'Snack'),
+          ],
+        ),
       ),
     );
   }
@@ -45,166 +93,186 @@ class MyAppState extends ChangeNotifier {
   }
 }
 
-class MyHomePage extends StatefulWidget {
+class OrderPage extends StatefulWidget {
+  const OrderPage({required this.foods, required this.categories});
+  final List<Food> foods;
+  final List<Category> categories;
+
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<OrderPage> createState() => _OrderPageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  var selectedIndex = 0;
+class _OrderPageState extends State<OrderPage> {
+  final List<CartItem> items = [];
+
+  void handleTapFood(Food food) {
+    setState(() {
+      var itemIndex =
+          items.indexWhere((CartItem item) => item.food.name == food.name);
+      if (itemIndex == -1) {
+        // Add new item to cart
+        items.add(CartItem(food: food, quantity: 1));
+      } else {
+        items[itemIndex].quantity += 1;
+      }
+    });
+  }
+
+  void handleChangeCartItem(CartItem cartItem) {
+    setState(() {
+      var itemIndex = items
+          .indexWhere((CartItem item) => item.food.name == cartItem.food.name);
+      if (cartItem.quantity <= 0) {
+        items.removeAt(itemIndex);
+      } else {
+        items[itemIndex] = cartItem;
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    Widget page;
-    switch (selectedIndex) {
-      case 0:
-        page = GeneratorPage();
-        break;
-      case 1:
-        page = FavoritesPage();
-        break;
-      default:
-        throw UnimplementedError('no widget for $selectedIndex');
-    }
-
     return LayoutBuilder(builder: (context, constraints) {
       return Scaffold(
-        body: Row(
-          children: [
-            SafeArea(
-              child: NavigationRail(
-                extended: constraints.maxWidth >= 600,
-                destinations: [
-                  NavigationRailDestination(
-                    icon: Icon(Icons.home),
-                    label: Text('Home'),
-                  ),
-                  NavigationRailDestination(
-                    icon: Icon(Icons.favorite),
-                    label: Text('Favorites'),
-                  ),
-                ],
-                selectedIndex: selectedIndex,
-                onDestinationSelected: (value) {
-                  setState(() {
-                    selectedIndex = value;
-                  });
-                },
+        body: Container(
+          color: Theme.of(context).colorScheme.primaryContainer,
+          child: Row(
+            children: [
+              Expanded(
+                flex: 2,
+                child: FoodSelect(
+                    categories: widget.categories,
+                    foods: widget.foods,
+                    handleTapFood: handleTapFood),
               ),
-            ),
-            Expanded(
-              child: Container(
-                color: Theme.of(context).colorScheme.primaryContainer,
-                child: page,
-              ),
-            ),
-          ],
+              Expanded(
+                flex: 1,
+                child: Container(
+                    color: Theme.of(context).colorScheme.background,
+                    child: Cart(
+                        cartItems: items,
+                        handleChangeCartItem: handleChangeCartItem)),
+              )
+            ],
+          ),
         ),
       );
     });
   }
 }
 
+typedef ChangeCartItemCallBack = Function(CartItem cartItem);
 
+class Cart extends StatelessWidget {
+  Cart({required this.cartItems, required this.handleChangeCartItem});
+  final List<CartItem> cartItems;
+  final ChangeCartItemCallBack handleChangeCartItem;
 
-class FavoritesPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    var appState = context.watch<MyAppState>();
+  void _handleIncreaseQuantity(CartItem cartItem) {
+    cartItem.quantity += 1;
+    handleChangeCartItem(cartItem);
+  }
 
-    if (appState.favorites.isEmpty) {
-      return Center(
-        child: Text('No favorites yet.'),
-      );
-    }
+  void _handleDecreaseQuantity(CartItem cartItem) {
+    cartItem.quantity -= 1;
+    handleChangeCartItem(cartItem);
+  }
 
-    return ListView(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(20),
-          child: Text('You have '
-              '${appState.favorites.length} favorites:'),
+  Widget _buildCartItem(CartItem cartItem) =>
+      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+        Text(cartItem.food.name),
+        Text(cartItem.food.price.toString()),
+        GestureDetector(
+            child: Icon(Icons.remove_circle),
+            onTap: () => _handleDecreaseQuantity(cartItem)),
+        Text(cartItem.quantity.toString()),
+        GestureDetector(
+          child: Icon(Icons.add_circle),
+          onTap: () => _handleIncreaseQuantity(cartItem),
         ),
-        for (var pair in appState.favorites)
-          ListTile(
-            leading: Icon(Icons.favorite),
-            title: Text(pair.asLowerCase),
-          ),
-      ],
-    );
-  }
-}
-
-
-class GeneratorPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    var appState = context.watch<MyAppState>();
-    var pair = appState.current;
-
-    IconData icon;
-    if (appState.favorites.contains(pair)) {
-      icon = Icons.favorite;
-    } else {
-      icon = Icons.favorite_border;
-    }
-
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          BigCard(pair: pair),
-          SizedBox(height: 10),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ElevatedButton.icon(
-                onPressed: () {
-                  appState.toggleFavorite();
-                },
-                icon: Icon(icon),
-                label: Text('Like'),
-              ),
-              SizedBox(width: 10),
-              ElevatedButton(
-                onPressed: () {
-                  appState.getNext();
-                },
-                child: Text('Next'),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class BigCard extends StatelessWidget {
-  const BigCard({
-    super.key,
-    required this.pair,
-  });
-
-  final WordPair pair;
+        Text((cartItem.quantity * cartItem.food.price).toString())
+      ]);
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final style = theme.textTheme.displayMedium!.copyWith(
-      color: theme.colorScheme.onPrimary,
-    );
-
     return Card(
-      color: theme.colorScheme.primary,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Text(
-          pair.asLowerCase,
-          style: style,
-          semanticsLabel: "${pair.first} ${pair.second}",
-        ),
-      ),
-    );
+        child: Column(
+      children: [
+        Text('Total items ${cartItems.length}'),
+        Column(
+            children: cartItems
+                .map((CartItem cartItem) => _buildCartItem(cartItem))
+                .toList()),
+      ],
+    ));
+  }
+}
+
+typedef TapFoodCallback = Function(Food food);
+
+class FoodSelect extends StatefulWidget {
+  FoodSelect(
+      {required this.categories,
+      required this.foods,
+      required this.handleTapFood});
+
+  final List<Category> categories;
+  final List<Food> foods;
+  final TapFoodCallback handleTapFood;
+
+  @override
+  State<FoodSelect> createState() => _FoodSelectState();
+}
+
+class _FoodSelectState extends State<FoodSelect> {
+  Category selectedCategory = Category(name: 'All');
+
+  void handleSelectCategory(Category category) {
+    setState(() {
+     selectedCategory = category;
+    });
+  }
+
+
+  
+  Widget _buildCategorySelector() => Row(
+        children: widget.categories.map((Category category) {
+          return GestureDetector(
+            onTap: () => handleSelectCategory(category),
+            child: Card(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  category.name,
+                  style: TextStyle(
+                      fontWeight: selectedCategory.name == category.name
+                          ? FontWeight.bold
+                          : FontWeight.normal),
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      );
+
+  Widget _buildFoodList() => Column(
+      children: widget.foods
+          .where((Food food) => selectedCategory.name == 'All' || food.category == selectedCategory.name)
+          .map((Food food) => GestureDetector(
+                onTap: () => widget.handleTapFood(food),
+                child: Card(
+                    child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text("${food.name}: ${food.price}"),
+                )),
+              ))
+          .toList());
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(children: [
+      _buildCategorySelector(),
+      _buildFoodList(),
+    ]);
   }
 }
