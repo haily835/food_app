@@ -62,7 +62,7 @@ class MyApp extends StatelessWidget {
                 category: 'Thuc uong'),
           ],
           categories: [
-             Category(name: 'All'),
+            Category(name: 'All'),
             Category(name: 'Do an'),
             Category(name: 'Thuc uong'),
             Category(name: 'Snack'),
@@ -209,6 +209,35 @@ class Cart extends StatelessWidget {
 }
 
 typedef TapFoodCallback = Function(Food food);
+typedef ChangeSearchKeyCallback = Function(String newSearchKey);
+
+class FoodHeader extends StatelessWidget {
+  FoodHeader({
+    required this.searchKey,
+    required this.handleChangeSearchKey,
+  });
+
+  final String searchKey;
+  final ChangeSearchKeyCallback handleChangeSearchKey;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+      Text('Point of sales', style: Theme.of(context).textTheme.headlineMedium),
+      SizedBox(width: 30),
+      Expanded(
+        child: TextField(
+          onSubmitted: (value) => handleChangeSearchKey(value),
+          decoration: InputDecoration(
+            border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
+            labelText: 'Search product...',
+            prefixIcon: Icon(Icons.search),
+          ),
+        ),
+      )
+    ]);
+  }
+}
 
 class FoodSelect extends StatefulWidget {
   FoodSelect(
@@ -226,15 +255,20 @@ class FoodSelect extends StatefulWidget {
 
 class _FoodSelectState extends State<FoodSelect> {
   Category selectedCategory = Category(name: 'All');
+  String searchKey = "";
 
   void handleSelectCategory(Category category) {
     setState(() {
-     selectedCategory = category;
+      selectedCategory = category;
     });
   }
 
+  void handleChangeSearchKey(String newSearchKey) {
+    setState(() {
+      searchKey = newSearchKey;
+    });
+  }
 
-  
   Widget _buildCategorySelector() => Row(
         children: widget.categories.map((Category category) {
           return GestureDetector(
@@ -255,22 +289,35 @@ class _FoodSelectState extends State<FoodSelect> {
         }).toList(),
       );
 
-  Widget _buildFoodList() => Column(
-      children: widget.foods
-          .where((Food food) => selectedCategory.name == 'All' || food.category == selectedCategory.name)
-          .map((Food food) => GestureDetector(
-                onTap: () => widget.handleTapFood(food),
-                child: Card(
-                    child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text("${food.name}: ${food.price}"),
-                )),
-              ))
-          .toList());
+  Widget _buildFoodList() => Expanded(
+    child: GridView.extent(
+        mainAxisSpacing: 4,
+        crossAxisSpacing: 4,
+        padding: const EdgeInsets.all(4),
+        maxCrossAxisExtent: 200,
+        children: widget.foods
+            .where((Food food) =>
+                selectedCategory.name == 'All' ||
+                food.category == selectedCategory.name)
+            .where((Food food) => food.name.toLowerCase().contains(searchKey.toLowerCase()))
+            .map((Food food) => GestureDetector(
+                  onTap: () => widget.handleTapFood(food),
+                  child: Card(
+                      child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text("${food.name}: ${food.price}"),
+                  )),
+                ))
+            .toList()),
+  );
+
+  Widget _buildFoodHeader() => FoodHeader(
+      searchKey: searchKey, handleChangeSearchKey: handleChangeSearchKey);
 
   @override
   Widget build(BuildContext context) {
     return Column(children: [
+      _buildFoodHeader(),
       _buildCategorySelector(),
       _buildFoodList(),
     ]);
