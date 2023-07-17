@@ -12,7 +12,7 @@ Under User variables check if there is an entry called Path:
         - If the entry exists, append the full path to flutter\bin using ; as a separator from existing values.
         - If the entry doesn’t exist, create a new user variable named Path with the full path to flutter\bin as its value.
 You have to close and reopen any existing console windows for these changes to take effect.
-- Install Android Studio:
+- Install Android Studio (optional, do not need when debugging using Chrome):
     - Download and install Android Studio.
     - Start Android Studio, and go through the ‘Android Studio Setup Wizard’. This installs the latest Android SDK, Android SDK Command-line Tools, and Android SDK Build-Tools, which are required by Flutter when developing for Android.
     - Run flutter doctor to confirm that Flutter has located your installation of Android Studio. If Flutter cannot locate it, run flutter config `--android-studio-dir=<directory>` to set the directory that Android Studio is installed to.
