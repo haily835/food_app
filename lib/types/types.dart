@@ -27,3 +27,4 @@ typedef TapFoodCallback = Function(Food food);
 typedef ChangeSearchKeyCallback = Function(String newSearchKey);
 typedef ChangeDiscountCallback = Function(String discount);
 typedef ChangeTaxAndFeeCallback = Function(String taxAndFee);
+typedef ClearCartCallback = Function();

@@ -88,7 +88,7 @@ class OrderPage extends StatefulWidget {
 }
 
 class _OrderPageState extends State<OrderPage> {
-  final List<CartItem> items = [];
+  List<CartItem> items = [];
   double discount = 0;
   double taxAndFee = 0;
 
@@ -137,6 +137,14 @@ class _OrderPageState extends State<OrderPage> {
     });
   }
 
+  void handleClearCart() {
+    setState(() {
+      items = [];
+      taxAndFee = 0;
+      discount = 0;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
@@ -163,6 +171,7 @@ class _OrderPageState extends State<OrderPage> {
                   handleChangeCartItem: handleChangeCartItem,
                   handleChangeDiscount: handleChangeDiscount,
                   handleChangeTaxAndFee: handleChangeTaxAndFee,
+                  handleClearCart: handleClearCart,
                 ),
               )
             ],

@@ -7,6 +7,7 @@ class Cart extends StatelessWidget {
     required this.handleChangeCartItem,
     required this.handleChangeDiscount,
     required this.handleChangeTaxAndFee,
+    required this.handleClearCart,
     required this.discount,
     required this.taxAndFee,
   });
@@ -15,6 +16,7 @@ class Cart extends StatelessWidget {
   final ChangeCartItemCallBack handleChangeCartItem;
   final ChangeDiscountCallback handleChangeDiscount;
   final ChangeTaxAndFeeCallback handleChangeTaxAndFee;
+  final ClearCartCallback handleClearCart;
   final double discount;
   final double taxAndFee;
 
@@ -31,6 +33,10 @@ class Cart extends StatelessWidget {
   void _handleDelete(CartItem cartItem) {
     cartItem.quantity = 0;
     handleChangeCartItem(cartItem);
+  }
+
+  void _handleClearCart() {
+    handleClearCart();
   }
 
   double _calculateCartTotal() {
@@ -107,6 +113,7 @@ class Cart extends StatelessWidget {
                       )),
                 ],
               ),
+              Divider(thickness: 1),
               Expanded(
                 child: ListView(
                     children: cartItems
@@ -168,23 +175,46 @@ class Cart extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('Total',
-                      style: theme
-                          .textTheme
-                          .titleMedium!
+                      style: theme.textTheme.titleMedium!
                           .copyWith(fontWeight: FontWeight.bold)),
                   Text('${_calculateCartTotal().toStringAsFixed(2)} \$',
-                      style: theme
-                          .textTheme
-                          .titleLarge!
-                          .copyWith(fontWeight: FontWeight.bold, color: theme.primaryColor)),
+                      style: theme.textTheme.titleLarge!.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: theme.primaryColor)),
                 ],
               ),
               Padding(
                 padding: const EdgeInsets.only(top: 8, bottom: 20),
                 child: FilledButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: Text('Confirm payment'),
+                          content: Text('This will clear the current cart.'),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                _handleClearCart();
+                                Navigator.of(context).pop();
+                              },
+                              child: Text('OK'),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              child: Text('Close'),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
                   child: Text('CONTINUE PAYMENT'),
                 ),
+
               )
             ],
           ),

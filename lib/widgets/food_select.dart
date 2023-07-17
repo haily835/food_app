@@ -31,7 +31,7 @@ class FoodHeader extends StatelessWidget {
               decoration: InputDecoration(
                 border: OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(20))),
-                labelText: 'Search product...',
+                labelText: 'Search meal...',
                 prefixIcon: Icon(Icons.search),
                 filled: true,
                 fillColor: Colors.white,
