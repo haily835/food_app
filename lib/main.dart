@@ -1,81 +1,80 @@
-import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'types/types.dart';
 import 'widgets/cart.dart';
 import 'widgets/food_select.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'dart:math';
 
 void main() {
   runApp(MyApp());
 }
-class MyApp extends StatelessWidget {
+
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
   @override
-  Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => MyAppState(),
-      child: MaterialApp(
-        title: 'Food App',
-        theme: ThemeData(
-          useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
-        ),
-        home: OrderPage(
-          foods: [
-            Food(
-                name: 'Pho',
-                price: 10.1,
-                img:
-                    'https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Ph%E1%BB%9F_b%C3%B2%2C_C%E1%BA%A7u_Gi%E1%BA%A5y%2C_H%C3%A0_N%E1%BB%99i.jpg/1599px-Ph%E1%BB%9F_b%C3%B2%2C_C%E1%BA%A7u_Gi%E1%BA%A5y%2C_H%C3%A0_N%E1%BB%99i.jpg',
-                category: 'Do an'),
-            Food(
-                name: 'Bun bo',
-                price: 10.3,
-                img:
-                    'https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Bun-Bo-Hue-from-Huong-Giang-2011.jpg/1200px-Bun-Bo-Hue-from-Huong-Giang-2011.jpg',
-                category: 'Do an'),
-            Food(
-                name: 'Sting',
-                price: 10,
-                img:
-                    'https://cdn.tgdd.vn/Products/Images/3226/76519/bhx/nuoc-tang-luc-sting-sleek-huong-dau-320ml-202211041423237135.jpg',
-                category: 'Thuc uong'),
-            Food(
-                name: 'Cam',
-                price: 10,
-                img:
-                    'https://suckhoedoisong.qltns.mediacdn.vn/324455921873985536/2022/2/19/cach-lam-nuoc-cam-ep-ngon-va-thom-ket-hop-voi-le-va-gung-5-1645248090817401855254.jpg',
-                category: 'Thuc uong'),
-          ],
-          categories: [
-            Category(name: 'All'),
-            Category(name: 'Do an'),
-            Category(name: 'Thuc uong'),
-            Category(name: 'Snack'),
-          ],
-        ),
-      ),
-    );
-  }
+  _MyAppState createState() => _MyAppState();
 }
 
-class MyAppState extends ChangeNotifier {
-  var current = WordPair.random();
-
-  void getNext() {
-    current = WordPair.random();
-    notifyListeners();
+class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+    fetchData();
   }
 
-  var favorites = <WordPair>[];
+  List<Category> categories = [
+    Category(name: 'All'),
+    Category(name: 'Seafood'),
+    Category(name: 'Chicken'),
+    Category(name: 'Beef'),
+    Category(name: 'Pasta'),
+    Category(name: 'Dessert'),
+  ];
 
-  void toggleFavorite() {
-    if (favorites.contains(current)) {
-      favorites.remove(current);
-    } else {
-      favorites.add(current);
+  List<Food> foods = [];
+
+  Future<void> fetchData() async {
+    List<Food> foodData = [];
+
+    for (Category category in categories) {
+      if (category.name == 'All') continue;
+
+      final response = await http.get(Uri.parse(
+          'https://www.themealdb.com/api/json/v1/1/filter.php?c=${category.name}'));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['meals'] != null) {
+          for (var meal in data['meals']) {
+            foodData.add(Food(
+                category: category.name,
+                img: meal['strMealThumb'],
+                name: meal['strMeal'],
+                price: Random().nextDouble() * 20));
+          }
+        }
+      }
     }
-    notifyListeners();
+
+    setState(() {
+      foods = foodData;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Food App',
+      theme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
+      ),
+      home: OrderPage(
+        foods: foods,
+        categories: categories,
+      ),
+    );
   }
 }
 
@@ -120,15 +119,21 @@ class _OrderPageState extends State<OrderPage> {
 
   void handleChangeDiscount(String newDiscount) {
     setState(() {
-      if (newDiscount == "") discount = 0;
-      discount = double.parse(newDiscount);
+      try {
+        discount = double.parse(newDiscount);
+      } catch (e) {
+        discount = 0;
+      }
     });
   }
 
   void handleChangeTaxAndFee(String newTaxAndFee) {
     setState(() {
-      if (newTaxAndFee == "") taxAndFee = 0;
-      taxAndFee = double.parse(newTaxAndFee);
+      try {
+        taxAndFee = double.parse(newTaxAndFee);
+      } catch (e) {
+        taxAndFee = 0;
+      }
     });
   }
 
@@ -142,24 +147,23 @@ class _OrderPageState extends State<OrderPage> {
           child: Row(
             children: [
               Expanded(
-                flex: 2,
+                flex: 4,
                 child: FoodSelect(
                     categories: widget.categories,
                     foods: widget.foods,
-                    handleTapFood: handleTapFood
-                ),
+                    handleTapFood: handleTapFood),
               ),
               SizedBox(width: 20),
               Expanded(
-                flex: 1,
+                flex: 3,
                 child: Cart(
-                    cartItems: items,
-                    discount: discount,
-                    taxAndFee: taxAndFee,
-                    handleChangeCartItem: handleChangeCartItem,
-                    handleChangeDiscount: handleChangeDiscount,
-                    handleChangeTaxAndFee: handleChangeTaxAndFee,
-                  ),
+                  cartItems: items,
+                  discount: discount,
+                  taxAndFee: taxAndFee,
+                  handleChangeCartItem: handleChangeCartItem,
+                  handleChangeDiscount: handleChangeDiscount,
+                  handleChangeTaxAndFee: handleChangeTaxAndFee,
+                ),
               )
             ],
           ),
@@ -168,5 +172,3 @@ class _OrderPageState extends State<OrderPage> {
     });
   }
 }
-
-
