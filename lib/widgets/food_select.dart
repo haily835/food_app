@@ -61,7 +61,7 @@ class FoodCard extends StatelessWidget {
     return GestureDetector(
         onTap: () => handleTapFood(food),
         child: Card(
-          elevation: 10,
+          elevation: 0,
           child: Container(
             padding: EdgeInsets.all(16.0),
             decoration: BoxDecoration(
@@ -128,7 +128,7 @@ class _FoodSelectState extends State<FoodSelect> {
           return GestureDetector(
             onTap: () => handleSelectCategory(category),
             child: Card(
-              elevation: 10,
+              elevation: 1,
               color: selectedCategory.name == category.name
                   ? theme.colorScheme.primary
                   : null,

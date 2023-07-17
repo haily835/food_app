@@ -1,7 +1,19 @@
 # food_app
- 
-# Debug on Chrome
+
+# Steps to run this code
+1. Install Flutter.
+For Windows: https://docs.flutter.dev/get-started/install/windows. (Android Studio is required)
+For MacOS: https://docs.flutter.dev/get-started/install/macos. (Xcode is required)
+
+2. Install packages:
+```
+flutter pub get
+```
+
+3. Debug on Chrome
+```
 flutter run -d chrome
+```
 
 # Screenshots
 <img width="1112" alt="Screenshot 2023-07-17 at 10 16 05" src="https://github.com/haily835/food_app/assets/53532432/8e36735d-f544-4eb6-bfa7-fc6152a0c828">
